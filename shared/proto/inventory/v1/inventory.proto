@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package inventory.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/sborsh1kmusora/micro/shared/pkg/proto/inventory/v1;inventory_v1";
+
+service InventoryService {
+  rpc GetItem(GetItemRequest) returns (GetItemResponse);
+  rpc ListItems(ListItemsRequest) returns (ListItemsResponse);
+  rpc CreateItem(CreateItemRequest) returns (CreateItemResponse);
+}
+
+message GetItemRequest {
+  string uuid = 1;
+}
+
+message GetItemResponse {
+  Item item = 1;
+}
+
+message ListItemsRequest {
+  ItemsFilter filter = 1;
+}
+
+message ItemsFilter {
+  repeated string uuids = 1;
+}
+
+message ListItemsResponse {
+  repeated Item items = 1;
+}
+
+message CreateItemRequest {
+  ItemInfo info = 1;
+}
+
+message CreateItemResponse {
+  string uuid = 1;
+}
+
+message Item {
+  string uuid = 1;
+  ItemInfo info = 2;
+}
+
+message ItemInfo {
+  string name = 1;
+  string desc = 2;
+  double price = 3;
+  Category category = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+enum Category {
+  CATEGORY_UNSPECIFIED = 0;
+  CATEGORY_CLOTHING = 1;
+  CATEGORY_SHOES = 2;
+  CATEGORY_ELECTRONICS = 3;
+  CATEGORY_BOOKS = 4;
+}
