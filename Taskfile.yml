@@ -1,16 +1,22 @@
 version: '3'
 
-# Глобальные переменные проекта
 vars:
-  GO_VERSION: '1.24'
+  GO_VERSION: '1.25.3'
   GOLANGCI_LINT_VERSION: 'v2.1.5'
   GCI_VERSION: 'v0.13.6'
   GOFUMPT_VERSION: 'v0.8.0'
+  BUF_VERSION: '1.53.0'
+  PROTOC_GEN_GO_VERSION: 'v1.36.6'
+  PROTOC_GEN_GO_GRPC_VERSION: 'v1.5.1'
 
   BIN_DIR: '{{.ROOT_DIR}}/bin'
   GOLANGCI_LINT: '{{.BIN_DIR}}/golangci-lint'
   GCI: '{{.BIN_DIR}}/gci'
   GOFUMPT: '{{.BIN_DIR}}/gofumpt'
+  BUF: '{{.BIN_DIR}}/buf'
+  PROTOC_GEN_GO: '{{.BIN_DIR}}/protoc-gen-go'
+  PROTOC_GEN_GO_GRPC: '{{.BIN_DIR}}/protoc-gen-go-grpc'
+
   MODULES: assembly inventory order payment platform iam notification
 
 tasks:
@@ -26,11 +32,11 @@ tasks:
     cmds:
       - |
         [ -f {{.GOFUMPT}} ] || {
-          echo '📦 Устанавливаем gofumpt {{.GOFUMPT_VERSION}}...'
+          echo 'Устанавливаем gofumpt {{.GOFUMPT_VERSION}}...'
           GOBIN={{.BIN_DIR}} go install mvdan.cc/gofumpt@{{.GOFUMPT_VERSION}}
         }
         [ -f {{.GCI}} ] || {
-          echo '📦 Устанавливаем gci {{.GCI_VERSION}}...'
+          echo 'Устанавливаем gci {{.GCI_VERSION}}...'
           GOBIN={{.BIN_DIR}} go install github.com/daixiang0/gci@{{.GCI_VERSION}}
         }
     status:
@@ -49,21 +55,21 @@ tasks:
     deps: [ install-formatters ]
     cmds:
       - |
-        echo "🧼 Форматируем через gofumpt ..."
+        echo "Форматируем через gofumpt ..."
         
         for module in {{.MODULES}}; do
           if [ -d "$module" ]; then
-            echo "🧼 Форматируем $module"
+            echo "Форматируем $module"
             find $module -type f -name '*.go' ! -path '*/mocks/*' -exec {{.GOFUMPT}} -extra -w {} +
           fi
         done
       - |
-        echo "🎯 Сортируем импорты через gci ..."
+        echo "Сортируем импорты через gci ..."
         
         for module in {{.MODULES}}; do
           if [ -d "$module" ]; then
-            echo "🎯 Сортируем импорты в $module"
-            find $module -type f -name '*.go' ! -path '*/mocks/*' -exec {{.GCI}} write -s standard -s default -s "prefix(github.com/olezhek28/microservices-course-olezhek-solution)" {} +
+            echo "Сортируем импорты в $module"
+            find $module -type f -name '*.go' ! -path '*/mocks/*' -exec {{.GCI}} write -s standard -s default -s "prefix(github.com/sborsh1kmusora/micro)" {} +
           fi
         done
 
@@ -78,7 +84,7 @@ tasks:
       - |
         [ -f {{.GOLANGCI_LINT}} ] || {
           mkdir -p {{.BIN_DIR}}
-          echo "📦 Устанавливаем golangci-lint {{.GOLANGCI_LINT_VERSION}}..."
+          echo "Устанавливаем golangci-lint {{.GOLANGCI_LINT_VERSION}}..."
           GOBIN={{.BIN_DIR}} go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@{{.GOLANGCI_LINT_VERSION}}
         }
     status:
@@ -94,7 +100,7 @@ tasks:
       Зависимости:
         - install-golangci-lint: автоматически устанавливает линтер
         - format: форматирует код перед проверкой
-    deps: [ install-golangci-lint ]
+    deps: [ install-golangci-lint, format ]
     vars:
       MODULES: '{{.MODULES}}'
       GOLANGCI_LINT: '{{.GOLANGCI_LINT}}'
@@ -102,11 +108,50 @@ tasks:
       - |
         set -e
         ERR=0
-        echo "🔍 Линтим все модули ..."
+        echo "Линтим все модули ..."
         for mod in {{.MODULES}}; do
           if [ -d "$mod" ]; then
-            echo "🔍 Линтим $mod module"
+            echo "Линтим $mod module"
             {{.GOLANGCI_LINT}} run $mod/... --config=.golangci.yml || ERR=1
           fi
         done
         exit $ERR
+
+  install-buf:
+    desc: "Устанавливает Buf в каталог bin"
+    cmds:
+      - |
+        mkdir -p {{.BIN_DIR}}
+        [ -f {{.BUF}} ] || {
+          echo 'Устанавливаем buf {{.BUF_VERSION}}...'
+          GOBIN={{.BIN_DIR}} go install github.com/bufbuild/buf/cmd/buf@v{{.BUF_VERSION}}
+        }
+    status:
+      - test -x {{.BUF}}
+
+  proto:install-plugins:
+    desc: "Устанавливает protoc плагины в каталог bin"
+    cmds:
+      - |
+        [ -f {{.PROTOC_GEN_GO}} ] || {
+          echo 'Устанавливаем protoc-gen-go...'
+          GOBIN={{.BIN_DIR}} go install google.golang.org/protobuf/cmd/protoc-gen-go@{{.PROTOC_GEN_GO_VERSION}}
+        }
+        [ -f {{.PROTOC_GEN_GO_GRPC}} ] || {
+          echo 'Устанавливаем protoc-gen-go-grpc...'
+          GOBIN={{.BIN_DIR}} go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@{{.PROTOC_GEN_GO_GRPC_VERSION}}
+        }
+
+  proto:lint:
+    deps: [ install-buf, proto:install-plugins ]
+    desc: Проверка .proto-файлов на соответствие стилю
+    dir: shared/proto
+    cmds:
+      - '{{.BUF}} lint'
+
+  proto:gen:
+    deps: [ install-buf, proto:install-plugins, proto:lint ]
+    desc: Генерация Go-кода из .proto
+    dir: shared/proto
+    cmds:
+      - '{{.BUF}} generate'
