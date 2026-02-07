@@ -1,6 +1,7 @@
 version: '3'
 
 vars:
+  GO_VERSION: '1.25.3'
   GOLANGCI_LINT_VERSION: 'v2.1.5'
   GCI_VERSION: 'v0.13.6'
   GOFUMPT_VERSION: 'v0.8.0'

@@ -28,7 +28,7 @@ jobs:
           go-version: ${{ inputs.go-version }}
 
       - name: Show go.work (debug)
-        run: cat go.work || echo "❗ go.work not found"
+        run: cat go.work || echo "go.work not found"
 
       - name: Install Task
         uses: arduino/setup-task@v2.0.0
