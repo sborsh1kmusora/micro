@@ -11,11 +11,12 @@ import (
 	"syscall"
 
 	"github.com/google/uuid"
-	inventoryV1 "github.com/sborsh1kmusora/micro/shared/pkg/proto/inventory/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
+
+	inventoryV1 "github.com/sborsh1kmusora/micro/shared/pkg/proto/inventory/v1"
 )
 
 const grpcPort = 50051
