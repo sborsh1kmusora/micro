@@ -3,6 +3,7 @@ module github.com/sborsh1kmusora/micro/shared
 go 1.25.3
 
 require (
+	github.com/envoyproxy/protoc-gen-validate v1.2.1
 	github.com/go-faster/errors v0.7.1
 	github.com/go-faster/jx v1.2.0
 	github.com/ogen-go/ogen v1.18.0
