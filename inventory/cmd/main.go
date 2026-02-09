@@ -31,6 +31,8 @@ const (
 
 var ErrItemNotFound = errors.New("item not found")
 
+var ErrItemNotFound = errors.New("item not found")
+
 type inventoryService struct {
 	inventoryV1.UnimplementedInventoryServiceServer
 
