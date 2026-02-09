@@ -8,6 +8,9 @@ vars:
   BUF_VERSION: '1.53.0'
   PROTOC_GEN_GO_VERSION: 'v1.36.6'
   PROTOC_GEN_GO_GRPC_VERSION: 'v1.5.1'
+  PROTOC_GEN_GRPC_GATEWAY_VERSION: 'v2.26.3'
+  PROTOC_GEN_VALIDATE_VERSION: 'v1.2.1'
+  OGEN_VERSION: 'v1.14.0'
 
   BIN_DIR: '{{.ROOT_DIR}}/bin'
   GOLANGCI_LINT: '{{.BIN_DIR}}/golangci-lint'
@@ -16,6 +19,10 @@ vars:
   BUF: '{{.BIN_DIR}}/buf'
   PROTOC_GEN_GO: '{{.BIN_DIR}}/protoc-gen-go'
   PROTOC_GEN_GO_GRPC: '{{.BIN_DIR}}/protoc-gen-go-grpc'
+  PROTOC_GEN_GRPC_GATEWAY: '{{.BIN_DIR}}/protoc-gen-grpc-gateway'
+  PROTOC_GEN_VALIDATE: '{{.BIN_DIR}}/protoc-gen-validate'
+  OGEN: '{{.BIN_DIR}}/ogen'
+  OPENAPI_SPEC: '{{.ROOT_DIR}}/shared/api/order/v1/order.openapi.yaml'
 
   MODULES: assembly inventory order payment platform iam notification
 
@@ -141,6 +148,23 @@ tasks:
           echo 'Устанавливаем protoc-gen-go-grpc...'
           GOBIN={{.BIN_DIR}} go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@{{.PROTOC_GEN_GO_GRPC_VERSION}}
         }
+        [ -f {{.PROTOC_GEN_GRPC_GATEWAY}} ] || {
+          echo 'Устанавливаем protoc-gen-grpc-gateway...'
+          GOBIN={{.BIN_DIR}} go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@{{.PROTOC_GEN_GRPC_GATEWAY_VERSION}}
+        }
+        [ -f {{.PROTOC_GEN_VALIDATE}} ] || {
+          echo 'Устанавливаем protoc-gen-validate...'
+          GOBIN={{.BIN_DIR}} go install github.com/envoyproxy/protoc-gen-validate@{{.PROTOC_GEN_VALIDATE_VERSION}}
+        }
+
+  proto:update-deps:
+    deps: [ install-buf ]
+    desc: Обновляет зависимости protobuf из удаленных репозиториев (googleapis и т.д.)
+    dir: proto
+    cmds:
+      - |
+        echo "Обновляем зависимости buf..."
+        {{.BUF}} dep update shared/proto
 
   proto:lint:
     deps: [ install-buf, proto:install-plugins ]
@@ -150,8 +174,28 @@ tasks:
       - '{{.BUF}} lint'
 
   proto:gen:
-    deps: [ install-buf, proto:install-plugins, proto:lint ]
+    deps: [ install-buf, proto:install-plugins, proto:lint, proto:update-deps ]
     desc: Генерация Go-кода из .proto
     dir: shared/proto
     cmds:
       - '{{.BUF}} generate'
+
+  ogen:install:
+    desc: "Скачивает ogen в папку bin"
+    cmds:
+      - |
+        [ -f {{.OGEN}} ] || {
+          mkdir -p {{.BIN_DIR}}
+          GOBIN={{.BIN_DIR}} go install github.com/ogen-go/ogen/cmd/ogen@{{.OGEN_VERSION}}
+        }
+
+  ogen:gen:
+    deps: [ ogen:install ]
+    desc: Генерация Go-кода из OpenApi-декларации с x-ogen
+    cmds:
+      - |
+        {{.OGEN}} \
+          -target ./shared/pkg/openapi/order/v1 \
+          -package order_v1 \
+          -clean \
+          {{.OPENAPI_SPEC}}

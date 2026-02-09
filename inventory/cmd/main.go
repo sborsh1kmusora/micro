@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -20,6 +21,8 @@ import (
 )
 
 const grpcPort = 50051
+
+var ErrItemNotFound = errors.New("item not found")
 
 type inventoryService struct {
 	inventoryV1.UnimplementedInventoryServiceServer
@@ -49,32 +52,27 @@ func (s *inventoryService) ListItems(
 	_ context.Context,
 	req *inventoryV1.ListItemsRequest,
 ) (*inventoryV1.ListItemsResponse, error) {
-	if req == nil || req.Filter == nil {
+	if req == nil || req.GetUuids() == nil || len(req.GetUuids()) == 0 {
 		return &inventoryV1.ListItemsResponse{
 			Items: mapToSlice(s.items),
 		}, nil
 	}
 
-	filter := req.Filter
-
-	if len(filter.Uuids) == 0 {
-		return &inventoryV1.ListItemsResponse{
-			Items: mapToSlice(s.items),
-		}, nil
-	}
+	uuids := req.GetUuids()
 
 	var result []*inventoryV1.Item
 
-	if len(filter.Uuids) > 0 {
-		uuidSet := make(map[string]struct{}, len(filter.Uuids))
-		for _, n := range filter.Uuids {
-			uuidSet[n] = struct{}{}
-		}
+	uuidSet := make(map[string]*inventoryV1.Item, len(s.items))
+	for u, i := range s.items {
+		uuidSet[u] = i
+	}
 
-		for _, item := range s.items {
-			if _, ok := uuidSet[item.GetUuid()]; ok {
-				result = append(result, item)
-			}
+	for _, u := range uuids {
+		if _, ok := uuidSet[u]; ok {
+			result = append(result, uuidSet[u])
+		} else {
+			log.Printf("item with uuid %s not found", u)
+			return nil, ErrItemNotFound
 		}
 	}
 
