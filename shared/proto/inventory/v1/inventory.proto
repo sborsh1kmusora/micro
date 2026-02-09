@@ -3,13 +3,20 @@ syntax = "proto3";
 package inventory.v1;
 
 import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
+import "google/api/annotations.proto";
 
 option go_package = "github.com/sborsh1kmusora/micro/shared/pkg/proto/inventory/v1;inventory_v1";
 
 service InventoryService {
   rpc GetItem(GetItemRequest) returns (GetItemResponse);
   rpc ListItems(ListItemsRequest) returns (ListItemsResponse);
-  rpc CreateItem(CreateItemRequest) returns (CreateItemResponse);
+  rpc CreateItem(CreateItemRequest) returns (CreateItemResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/items"
+      body: "*"
+    };
+  }
 }
 
 message GetItemRequest {
@@ -21,10 +28,6 @@ message GetItemResponse {
 }
 
 message ListItemsRequest {
-  ItemsFilter filter = 1;
-}
-
-message ItemsFilter {
   repeated string uuids = 1;
 }
 
@@ -46,9 +49,9 @@ message Item {
 }
 
 message ItemInfo {
-  string name = 1;
-  string desc = 2;
-  double price = 3;
+  string name = 1 [(validate.rules).string = {min_len: 2, max_len: 50}];
+  string desc = 2 [(validate.rules).string = {max_len: 255}];
+  double price = 3 [(validate.rules).double = {gt: 0}];
   Category category = 4;
   google.protobuf.Timestamp created_at = 5;
   google.protobuf.Timestamp updated_at = 6;

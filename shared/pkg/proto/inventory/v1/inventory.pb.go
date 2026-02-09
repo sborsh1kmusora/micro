@@ -7,6 +7,8 @@
 package inventory_v1
 
 import (
+	_ "github.com/envoyproxy/protoc-gen-validate/validate"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -481,7 +483,7 @@ var File_inventory_v1_inventory_proto protoreflect.FileDescriptor
 
 const file_inventory_v1_inventory_proto_rawDesc = "" +
 	"\n" +
-	"\x1cinventory/v1/inventory.proto\x12\finventory.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"$\n" +
+	"\x1cinventory/v1/inventory.proto\x12\finventory.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\"$\n" +
 	"\x0eGetItemRequest\x12\x12\n" +
 	"\x04uuid\x18\x01 \x01(\tR\x04uuid\"9\n" +
 	"\x0fGetItemResponse\x12&\n" +
@@ -496,11 +498,11 @@ const file_inventory_v1_inventory_proto_rawDesc = "" +
 	"\x04uuid\x18\x01 \x01(\tR\x04uuid\"F\n" +
 	"\x04Item\x12\x12\n" +
 	"\x04uuid\x18\x01 \x01(\tR\x04uuid\x12*\n" +
-	"\x04info\x18\x02 \x01(\v2\x16.inventory.v1.ItemInfoR\x04info\"\xf2\x01\n" +
-	"\bItemInfo\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
-	"\x04desc\x18\x02 \x01(\tR\x04desc\x12\x14\n" +
-	"\x05price\x18\x03 \x01(\x01R\x05price\x122\n" +
+	"\x04info\x18\x02 \x01(\v2\x16.inventory.v1.ItemInfoR\x04info\"\x97\x02\n" +
+	"\bItemInfo\x12\x1d\n" +
+	"\x04name\x18\x01 \x01(\tB\t\xfaB\x06r\x04\x10\x02\x182R\x04name\x12\x1c\n" +
+	"\x04desc\x18\x02 \x01(\tB\b\xfaB\x05r\x03\x18\xff\x01R\x04desc\x12$\n" +
+	"\x05price\x18\x03 \x01(\x01B\x0e\xfaB\v\x12\t!\x00\x00\x00\x00\x00\x00\x00\x00R\x05price\x122\n" +
 	"\bcategory\x18\x04 \x01(\x0e2\x16.inventory.v1.CategoryR\bcategory\x129\n" +
 	"\n" +
 	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
@@ -511,12 +513,12 @@ const file_inventory_v1_inventory_proto_rawDesc = "" +
 	"\x11CATEGORY_CLOTHING\x10\x01\x12\x12\n" +
 	"\x0eCATEGORY_SHOES\x10\x02\x12\x18\n" +
 	"\x14CATEGORY_ELECTRONICS\x10\x03\x12\x12\n" +
-	"\x0eCATEGORY_BOOKS\x10\x042\xf9\x01\n" +
+	"\x0eCATEGORY_BOOKS\x10\x042\x93\x02\n" +
 	"\x10InventoryService\x12F\n" +
 	"\aGetItem\x12\x1c.inventory.v1.GetItemRequest\x1a\x1d.inventory.v1.GetItemResponse\x12L\n" +
-	"\tListItems\x12\x1e.inventory.v1.ListItemsRequest\x1a\x1f.inventory.v1.ListItemsResponse\x12O\n" +
+	"\tListItems\x12\x1e.inventory.v1.ListItemsRequest\x1a\x1f.inventory.v1.ListItemsResponse\x12i\n" +
 	"\n" +
-	"CreateItem\x12\x1f.inventory.v1.CreateItemRequest\x1a .inventory.v1.CreateItemResponseBLZJgithub.com/sborsh1kmusora/micro/shared/pkg/proto/inventory/v1;inventory_v1b\x06proto3"
+	"CreateItem\x12\x1f.inventory.v1.CreateItemRequest\x1a .inventory.v1.CreateItemResponse\"\x18\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/api/v1/itemsBLZJgithub.com/sborsh1kmusora/micro/shared/pkg/proto/inventory/v1;inventory_v1b\x06proto3"
 
 var (
 	file_inventory_v1_inventory_proto_rawDescOnce sync.Once
