@@ -6,21 +6,28 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/google/uuid"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 
 	inventoryV1 "github.com/sborsh1kmusora/micro/shared/pkg/proto/inventory/v1"
 )
 
-const grpcPort = 50051
+const (
+	grpcPort = 50051
+	httpPort = 8081
+)
 
 var ErrItemNotFound = errors.New("item not found")
 
@@ -88,6 +95,10 @@ func (s *inventoryService) CreateItem(
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	if err := req.Validate(); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "validation error: %v", err)
+	}
+
 	newUuid := uuid.NewString()
 	item := &inventoryV1.Item{
 		Uuid: newUuid,
@@ -134,12 +145,57 @@ func main() {
 		}
 	}()
 
+	var gwServer *http.Server
+	go func() {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		mux := runtime.NewServeMux()
+
+		opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+
+		err = inventoryV1.RegisterInventoryServiceHandlerFromEndpoint(
+			ctx,
+			mux,
+			fmt.Sprintf("localhost:%d", grpcPort),
+			opts,
+		)
+		if err != nil {
+			log.Printf("Failed to register gateway: %v\n", err)
+			return
+		}
+
+		gwServer = &http.Server{
+			Addr:              fmt.Sprintf(":%d", httpPort),
+			Handler:           mux,
+			ReadHeaderTimeout: 10 * time.Second,
+		}
+
+		log.Printf("HTTP server with gRPC-Gateway listening on %d\n", httpPort)
+		err = gwServer.ListenAndServe()
+		if err != nil {
+			log.Printf("Failed to serve HTTP: %v\n", err)
+			return
+		}
+	}()
+
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	<-quit
 
 	log.Println("Shutting down gRPC server...")
+
+	if gwServer != nil {
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := gwServer.Shutdown(shutdownCtx); err != nil {
+			log.Printf("HTTP server shutdown error: %v", err)
+		}
+		log.Println("HTTP server stopped")
+	}
+
 	s.GracefulStop()
+
 	log.Println("Server gracefully stopped")
 }

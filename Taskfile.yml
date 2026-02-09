@@ -160,11 +160,11 @@ tasks:
   proto:update-deps:
     deps: [ install-buf ]
     desc: Обновляет зависимости protobuf из удаленных репозиториев (googleapis и т.д.)
-    dir: proto
+    dir: shared/proto
     cmds:
       - |
         echo "Обновляем зависимости buf..."
-        {{.BUF}} dep update shared/proto
+        {{.BUF}} dep update 
 
   proto:lint:
     deps: [ install-buf, proto:install-plugins ]
