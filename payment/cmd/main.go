@@ -13,6 +13,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
+	"github.com/sborsh1kmusora/micro/payment/internal/interceptor"
 	paymentV1 "github.com/sborsh1kmusora/micro/shared/pkg/proto/payment/v1"
 )
 
@@ -42,7 +43,9 @@ func main() {
 		return
 	}
 
-	s := grpc.NewServer()
+	s := grpc.NewServer(
+		grpc.UnaryInterceptor(interceptor.LoggerInterceptor()),
+	)
 
 	paymentV1.RegisterPaymentServiceServer(s, &paymentService{})
 
