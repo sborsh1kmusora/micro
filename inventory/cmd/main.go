@@ -21,6 +21,7 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 
+	"github.com/sborsh1kmusora/micro/inventory/internal/interceptor"
 	inventoryV1 "github.com/sborsh1kmusora/micro/shared/pkg/proto/inventory/v1"
 )
 
@@ -127,7 +128,9 @@ func main() {
 		return
 	}
 
-	s := grpc.NewServer()
+	s := grpc.NewServer(
+		grpc.UnaryInterceptor(interceptor.LoggerInterceptor()),
+	)
 
 	service := &inventoryService{
 		items: make(map[string]*inventoryV1.Item),
