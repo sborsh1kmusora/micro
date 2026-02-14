@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net"
@@ -9,32 +8,16 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
+	paymentV1API "github.com/sborsh1kmusora/micro/payment/internal/api/payment/v1"
 	"github.com/sborsh1kmusora/micro/payment/internal/interceptor"
+	paymentService "github.com/sborsh1kmusora/micro/payment/internal/service/payment"
 	paymentV1 "github.com/sborsh1kmusora/micro/shared/pkg/proto/payment/v1"
 )
 
 const grpcPort = 50052
-
-type paymentService struct {
-	paymentV1.UnimplementedPaymentServiceServer
-}
-
-func (s *paymentService) PayOrder(
-	_ context.Context,
-	req *paymentV1.PayOrderRequest,
-) (*paymentV1.PayOrderResponse, error) {
-	transactionUUID := uuid.NewString()
-
-	log.Printf("Payment was successful, trascation uuid %s", transactionUUID)
-
-	return &paymentV1.PayOrderResponse{
-		TransactionUuid: transactionUUID,
-	}, nil
-}
 
 func main() {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
@@ -47,7 +30,10 @@ func main() {
 		grpc.UnaryInterceptor(interceptor.LoggerInterceptor()),
 	)
 
-	paymentV1.RegisterPaymentServiceServer(s, &paymentService{})
+	svc := paymentService.NewService()
+	api := paymentV1API.NewAPI(svc)
+
+	paymentV1.RegisterPaymentServiceServer(s, api)
 
 	reflection.Register(s)
 
