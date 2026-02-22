@@ -6,8 +6,8 @@ import (
 	"github.com/sborsh1kmusora/micro/inventory/internal/model"
 )
 
-func (s *service) Create(ctx context.Context, item *model.ItemInfo) (string, error) {
-	uuid, err := s.itemRepo.Create(ctx, item)
+func (s *service) Create(ctx context.Context, itemInfo *model.ItemInfo) (string, error) {
+	uuid, err := s.itemRepo.Create(ctx, itemInfo)
 	if err != nil {
 		return "", err
 	}

@@ -20,7 +20,7 @@ func (a *api) CreateItem(
 
 	itemUUID, err := a.itemService.Create(ctx, converter.InfoProtoToModel(req.Info))
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "internal Server Error")
 	}
 
 	return &inventoryV1.CreateItemResponse{
