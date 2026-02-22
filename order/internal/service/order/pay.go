@@ -16,8 +16,8 @@ func (s *service) Pay(ctx context.Context, orderUUID, paymentMethod string) (str
 		return "", err
 	}
 
-	if order.Status == model.OrderStatusPaid {
-		return "", model.ErrOrderAlreadyPaid
+	if order.Status != model.OrderStatusPendingPayment {
+		return "", model.ErrOrderAlreadyPaidOrCancelled
 	}
 
 	transactionUUID, err := s.paymentCL.PayOrder(ctx, orderUUID, order.UserUUID, paymentMethod)

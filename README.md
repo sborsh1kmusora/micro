@@ -1,5 +1,7 @@
 # Микро маркетплейс
 
+![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/sborsh1kmusora/d0d1ff3ba5eff38ec831b4f4625c9437/raw/coverage.json)
+
 Микросервисная архитектура маркетплейса, включающая сервисы заказов, склада и платежей.
 
 ---

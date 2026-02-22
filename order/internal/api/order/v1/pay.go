@@ -22,9 +22,9 @@ func (a *api) PayOrder(
 				Message: "Order not found",
 				Code:    http.StatusNotFound,
 			}, nil
-		case errors.Is(err, model.ErrOrderAlreadyPaid):
+		case errors.Is(err, model.ErrOrderAlreadyPaidOrCancelled):
 			return &orderV1.ConflictError{
-				Message: "Order has already paid",
+				Message: "Order has already paid or cancelled",
 				Code:    http.StatusConflict,
 			}, nil
 		default:

@@ -9,7 +9,9 @@ require (
 )
 
 require (
+	github.com/brianvoe/gofakeit/v7 v7.14.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.7 // indirect
+	github.com/stretchr/testify v1.11.1 // indirect
 	golang.org/x/net v0.47.0 // indirect
 	golang.org/x/sys v0.38.0 // indirect
 	golang.org/x/text v0.33.0 // indirect
