@@ -282,7 +282,7 @@ tasks:
         done
 
         echo
-        echo "📊 Покрытие по каждому модулю:"
+        echo "Покрытие по каждому модулю:"
         for mod in {{.MODULES}}; do
           OUTFILE="{{.COVERAGE_DIR}}/$mod.out"
           if [ -f "$OUTFILE" ]; then
@@ -303,3 +303,59 @@ tasks:
         echo "Общее покрытие по всем модулям:"
         TOTAL=$(go tool cover -func={{.COVERAGE_DIR}}/{{.COVERAGE_FILE}} | tail -n1 | awk '{print $3}')
         echo "$TOTAL"
+
+  up-core:
+    desc: Поднять core контейнеры
+    dir: deploy/compose/core
+    cmds:
+      - echo "[task] Поднимаем core контейнеры"
+      - docker compose up --build -d
+
+  down-core:
+    desc: Остановить и удалить core контейнеры
+    dir: deploy/compose/core
+    cmds:
+      - echo "[task] Останавливаем core контейнеры"
+      - docker compose down -v
+
+  up-order:
+    desc: Поднять order сервис и все его зависимости
+    dir: deploy/compose/order
+    cmds:
+      - echo "[task] Поднимаем order сервис с зависимостями"
+      - docker compose up --build -d
+
+  down-order:
+    desc: Остановить и удалить order сервис и все его зависимости
+    dir: deploy/compose/order
+    cmds:
+      - echo "[task] Останавливаем order сервис с зависимостями"
+      - docker compose down -v
+
+  up-inventory:
+    desc: Поднять inventory сервис и все его зависимости
+    dir: deploy/compose/inventory
+    cmds:
+      - echo "[task] Поднимаем inventory сервис с зависимостями"
+      - docker compose up --build -d
+
+  down-inventory:
+    desc: Остановить и удалить inventory сервис и все его зависимости
+    dir: deploy/compose/inventory
+    cmds:
+      - echo "[task] Останавливаем inventory сервис с зависимостями"
+      - docker compose down -v
+
+  up-all:
+    desc: Поднять все сервисы по очереди вместе с зависимостями
+    cmds:
+      - task up-core
+      - task up-order
+      - task up-inventory
+
+  down-all:
+    desc: Остановить и удалить все сервисы по очереди вместе с зависимостями
+    cmds:
+      - task down-core
+      - task down-order
+      - task down-inventory

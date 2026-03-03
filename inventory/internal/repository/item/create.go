@@ -10,15 +10,17 @@ import (
 	repoModel "github.com/sborsh1kmusora/micro/inventory/internal/repository/model"
 )
 
-func (r *repo) Create(_ context.Context, info *model.ItemInfo) (string, error) {
+func (r *repo) Create(ctx context.Context, info *model.ItemInfo) (string, error) {
 	newUUID := uuid.NewString()
 
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	r.items[newUUID] = &repoModel.Item{
+	item := &repoModel.Item{
 		UUID: newUUID,
 		Info: converter.ItemInfoToRepoModel(info),
+	}
+
+	_, err := r.collection.InsertOne(ctx, item)
+	if err != nil {
+		return "", err
 	}
 
 	return newUUID, nil
