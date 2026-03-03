@@ -3,15 +3,15 @@ package model
 import "time"
 
 type Item struct {
-	UUID string
-	Info *ItemInfo
+	UUID string    `bson:"_id"`
+	Info *ItemInfo `bson:",inline"`
 }
 
 type ItemInfo struct {
-	Name      string
-	Desc      string
-	Price     float64
-	Category  string
-	CreatedAt time.Time
-	UpdatedAt *time.Time
+	Name      string     `bson:"name"`
+	Desc      string     `bson:"desc"`
+	Price     float64    `bson:"price"`
+	Category  string     `bson:"category"`
+	CreatedAt time.Time  `bson:"createdAt"`
+	UpdatedAt *time.Time `bson:"updatedAt,omitempty"`
 }
